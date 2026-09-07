@@ -1,4 +1,6 @@
 export default function DestinationRow({ index, value, destinations, onChange, onRemove, canRemove }) {
+  const destinationListId = `destination-options-${index}`;
+
   function handleNameChange(e) {
     onChange(index, { ...value, name: e.target.value });
   }
@@ -10,12 +12,20 @@ export default function DestinationRow({ index, value, destinations, onChange, o
 
   return (
     <div className="destination-row">
-      <select value={value.name} onChange={handleNameChange} required>
-        <option value="" disabled>Select a destination…</option>
+      <input
+        type="text"
+        list={destinationListId}
+        value={value.name}
+        onChange={handleNameChange}
+        placeholder="Select or type a destination"
+        aria-label={`Destination ${index + 1}`}
+        required
+      />
+      <datalist id={destinationListId}>
         {destinations.map((d) => (
-          <option key={d.id} value={d.name}>{d.name}</option>
+          <option key={d.id} value={d.name} />
         ))}
-      </select>
+      </datalist>
 
       <input
         type="number"
