@@ -220,12 +220,54 @@ h1, h2, h3 {
   margin-bottom: 0.75rem;
 }
 
-.destination-row > input:first-child {
+.destination-row__select {
   flex: 2;
+  position: relative;
+}
+
+.destination-row__select > input {
+  width: 100%;
   padding: 0.6rem;
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 4px;
   font-size: 1rem;
+}
+
+.destination-row__options {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.destination-row__option {
+  display: block;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.destination-row__option:hover,
+.destination-row__option:focus {
+  background: var(--color-bg);
+}
+
+.destination-row__empty {
+  display: block;
+  padding: 0.65rem 0.75rem;
+  color: rgba(28, 28, 26, 0.6);
 }
 
 .destination-row__days {
