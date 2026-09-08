@@ -4,6 +4,7 @@ import tz.ac.dit.safarismart.dto.history.SaveTripRequest;
 import tz.ac.dit.safarismart.dto.history.TripDetailDto;
 import tz.ac.dit.safarismart.dto.history.TripSummaryDto;
 import tz.ac.dit.safarismart.dto.itinerary.ItineraryResponse;
+import tz.ac.dit.safarismart.dto.planning.TripFeasibilityResponse;
 import tz.ac.dit.safarismart.dto.planning.TripGenerateRequest;
 import tz.ac.dit.safarismart.security.CustomUserDetails;
 import tz.ac.dit.safarismart.service.ai.AiItineraryService;
@@ -41,6 +42,11 @@ public class TripController {
     public ItineraryResponse generate(@Valid @RequestBody TripGenerateRequest request) {
         TripPlanDraft draft = tripPlanningService.generateDraft(request);
         return aiItineraryService.narrate(draft);
+    }
+
+    @PostMapping("/feasibility")
+    public TripFeasibilityResponse feasibility(@Valid @RequestBody TripGenerateRequest request) {
+        return tripPlanningService.assessFeasibility(request);
     }
 
     // Authenticated (falls under SecurityConfig's anyRequest().authenticated() rule).

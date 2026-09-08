@@ -378,6 +378,52 @@ h1, h2, h3 {
   font-style: italic;
 }
 
+.feasibility-summary {
+  margin-bottom: 1.5rem;
+}
+
+.feasibility-summary > .btn {
+  margin-top: 1rem;
+}
+
+.feasibility-alternatives {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.feasibility-alternatives h3 {
+  font-size: 1rem;
+}
+
+.feasibility-alternatives__list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.feasibility-alternative {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) 2fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem;
+  background: var(--color-surface);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+}
+
+.feasibility-alternative > div:first-child span,
+.feasibility-alternative__details span {
+  display: block;
+  font-size: 0.85rem;
+  color: rgba(28, 28, 26, 0.65);
+}
+
+.feasibility-alternative__details {
+  display: grid;
+  gap: 0.2rem;
+}
+
 .leg-section {
   margin-bottom: 2.5rem;
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllDestinations } from '../api/destinationApi';
-import { generateTrip } from '../api/tripApi';
+import { checkTripFeasibility, generateTrip } from '../api/tripApi';
 import DestinationRow from '../components/planner/DestinationRow';
+import { FeasibilitySummary } from '../components/itinerary/ItinerarySummary';
 
 const CURRENCY_OPTIONS = [
   { code: 'TZS', label: 'TZS (Tanzanian shilling)', toTzs: 1 },
@@ -76,6 +77,7 @@ export default function TripPlannerPage() {
   });
   const [submitError, setSubmitError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [feasibility, setFeasibility] = useState(null);
 
   const totalDays = form.destinations.reduce((sum, destination) => sum + (Number(destination.days) || 0), 0);
   const selectedDestinationText = form.destinations.map((destination) => destination.name.toLowerCase()).join(' ');
@@ -101,14 +103,18 @@ export default function TripPlannerPage() {
       destinations: next,
       interests: form.interests.filter((interest) => availableInterestValues.includes(interest)),
     });
+    setFeasibility(null);
+    setSubmitError(null);
   }
 
   function addDestination() {
     setForm({ ...form, destinations: [...form.destinations, emptyDestination()] });
+    setFeasibility(null);
   }
 
   function removeDestination(index) {
     setForm({ ...form, destinations: form.destinations.filter((_, i) => i !== index) });
+    setFeasibility(null);
   }
 
   function toggleInterest(value) {
@@ -117,6 +123,7 @@ export default function TripPlannerPage() {
       ...form,
       interests: has ? form.interests.filter((i) => i !== value) : [...form.interests, value],
     });
+    setFeasibility(null);
   }
 
   function validate() {
@@ -129,7 +136,41 @@ export default function TripPlannerPage() {
     if (!form.travelers || Number(form.travelers) < 1) {
       return 'At least one traveler is required.';
     }
+    if (!destinations.some((destination) => destination.name === form.destinations[0].name)) {
+      return 'Please select a starting destination from the suggestions.';
+    }
     return null;
+  }
+
+  function buildPayload() {
+    const startingDestination = destinations.find(
+      (destination) => destination.name === form.destinations[0].name
+    );
+    const payload = {
+      destinations: form.destinations.map((d) => ({ name: d.name, days: d.days || null })),
+      totalDays,
+      startingDestinationId: startingDestination?.id || null,
+      budget: form.budget ? Number(form.budget) * CURRENCY_OPTIONS.find((currency) => currency.code === form.currency).toTzs : null,
+      travelers: Number(form.travelers),
+      interests: form.interests,
+      travelStyle: form.travelStyle,
+      language: form.language,
+    };
+    return payload;
+  }
+
+  async function continueToItinerary(payload = buildPayload()) {
+    setSubmitError(null);
+    setSubmitting(true);
+
+    try {
+      const itinerary = await generateTrip(payload);
+      navigate('/itinerary', { state: { itinerary } });
+    } catch (err) {
+      setSubmitError(err.response?.data?.message || 'Could not generate your itinerary. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   async function handleSubmit(e) {
@@ -142,25 +183,22 @@ export default function TripPlannerPage() {
 
     setSubmitError(null);
     setSubmitting(true);
-
-    const payload = {
-      destinations: form.destinations.map((d) => ({ name: d.name, days: d.days || null })),
-      totalDays,
-      budget: form.budget ? Number(form.budget) * CURRENCY_OPTIONS.find((currency) => currency.code === form.currency).toTzs : null,
-      travelers: Number(form.travelers),
-      interests: form.interests,
-      travelStyle: form.travelStyle,
-      language: form.language,
-    };
-
     try {
-      const itinerary = await generateTrip(payload);
-      navigate('/itinerary', { state: { itinerary } });
+      const result = await checkTripFeasibility(buildPayload());
+      setFeasibility(result);
     } catch (err) {
-      setSubmitError(err.response?.data?.message || 'Could not generate your itinerary. Please try again.');
+      setSubmitError(err.response?.data?.message || 'Could not check trip feasibility. Please try again.');
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function selectAlternative(alternative) {
+    const nextDestinations = [...form.destinations];
+    nextDestinations[0] = { ...nextDestinations[0], name: alternative.name };
+    setForm({ ...form, destinations: nextDestinations });
+    setFeasibility(null);
+    setSubmitError(null);
   }
 
   return (
@@ -180,7 +218,15 @@ export default function TripPlannerPage() {
       )}
 
       {!loadingDestinations && !loadError && (
-        <form className="planner-form" onSubmit={handleSubmit}>
+        <>
+          {feasibility && (
+            <FeasibilitySummary
+              feasibility={feasibility}
+              onContinue={() => continueToItinerary()}
+              onSelectAlternative={selectAlternative}
+            />
+          )}
+          <form className="planner-form" onSubmit={handleSubmit}>
           <fieldset>
             <legend>Where are you going?</legend>
             {form.destinations.map((d, i) => (
@@ -281,9 +327,10 @@ export default function TripPlannerPage() {
           {submitError && <p className="form-error">{submitError}</p>}
 
           <button type="submit" className="btn btn--primary btn--large" disabled={submitting}>
-            {submitting ? 'Building your itinerary…' : 'Generate my itinerary'}
+            {submitting ? 'Checking trip feasibility…' : 'Check trip feasibility'}
           </button>
-        </form>
+          </form>
+        </>
       )}
     </div>
   );
