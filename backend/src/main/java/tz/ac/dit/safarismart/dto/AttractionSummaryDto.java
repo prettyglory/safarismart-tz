@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 
 public record AttractionSummaryDto(
         Long id,
-        DestinationReference destination,
         String name,
         String category,
         String[] interestTags,
@@ -13,7 +12,8 @@ public record AttractionSummaryDto(
         BigDecimal entranceFeeMax,
         BigDecimal avgDurationHours,
         boolean communityBased,
-        boolean active
+        boolean active,
+        DestinationReference destination
 ) {
     public record DestinationReference(Long id, String name) {
     }

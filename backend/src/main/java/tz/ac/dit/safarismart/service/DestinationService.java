@@ -59,10 +59,6 @@ public class DestinationService {
     private AttractionSummaryDto toAttractionSummary(Attraction a) {
         return new AttractionSummaryDto(
                 a.getId(),
-                new AttractionSummaryDto.DestinationReference(
-                        a.getDestination().getId(),
-                        a.getDestination().getName()
-                ),
                 a.getName(),
                 a.getCategory(),
                 a.getInterestTags(),
@@ -71,7 +67,11 @@ public class DestinationService {
                 a.getEntranceFeeMax(),
                 a.getAvgDurationHours(),
                 a.isCommunityBased(),
-                a.isActive()
+                a.isActive(),
+                new AttractionSummaryDto.DestinationReference(
+                        a.getDestination().getId(),
+                        a.getDestination().getName()
+                )
         );
     }
 }

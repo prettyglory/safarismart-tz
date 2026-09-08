@@ -79,10 +79,6 @@ public class AdminAttractionService {
     private AttractionSummaryDto toSummary(Attraction attraction) {
         return new AttractionSummaryDto(
                 attraction.getId(),
-                new AttractionSummaryDto.DestinationReference(
-                        attraction.getDestination().getId(),
-                        attraction.getDestination().getName()
-                ),
                 attraction.getName(),
                 attraction.getCategory(),
                 attraction.getInterestTags(),
@@ -91,7 +87,11 @@ public class AdminAttractionService {
                 attraction.getEntranceFeeMax(),
                 attraction.getAvgDurationHours(),
                 attraction.isCommunityBased(),
-                attraction.isActive()
+                attraction.isActive(),
+                new AttractionSummaryDto.DestinationReference(
+                        attraction.getDestination().getId(),
+                        attraction.getDestination().getName()
+                )
         );
     }
 }
