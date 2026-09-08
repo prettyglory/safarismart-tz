@@ -1,6 +1,7 @@
 const formatter = new Intl.NumberFormat('en-TZ', { maximumFractionDigits: 0 });
 
 export function formatAmount(value) {
+  if (value === null || value === undefined || value === '') return 'No budget limit';
   return `${formatter.format(Number(value))} TZS`;
 }
 

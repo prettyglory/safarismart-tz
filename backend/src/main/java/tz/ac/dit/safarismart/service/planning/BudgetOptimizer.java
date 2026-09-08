@@ -28,6 +28,12 @@ public class BudgetOptimizer {
     public void optimize(TripPlanDraft draft) {
         draft.recalculateTotals();
 
+        if (draft.getBudget() == null) {
+            draft.setOverBudget(false);
+            draft.setBudgetNote("No budget limit was provided.");
+            return;
+        }
+
         if (draft.getTotalCostMax().compareTo(draft.getBudget()) <= 0) {
             draft.setOverBudget(false);
             draft.setBudgetNote("This itinerary fits within your stated budget.");

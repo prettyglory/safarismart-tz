@@ -4,9 +4,10 @@ export default function DestinationRow({ index, value, destinations, onChange, o
   const [isOpen, setIsOpen] = useState(false);
   const rowRef = useRef(null);
 
-  const filteredDestinations = destinations.filter((destination) =>
-    destination.name.toLowerCase().includes(value.name.toLowerCase())
-  );
+  const filteredDestinations = destinations.filter((destination) => {
+    const destinationName = destination.name || destination.destinationName || '';
+    return destinationName.toLowerCase().includes(value.name.toLowerCase());
+  });
 
   useEffect(() => {
     function closeDropdown(event) {
@@ -25,7 +26,10 @@ export default function DestinationRow({ index, value, destinations, onChange, o
   }
 
   function selectDestination(name) {
-    onChange(index, { ...value, name });
+    const selected = destinations.find((destination) =>
+      (destination.name || destination.destinationName) === name
+    );
+    onChange(index, { ...value, name, days: value.days || selected?.recommendedDays || 2 });
     setIsOpen(false);
   }
 
@@ -55,9 +59,9 @@ export default function DestinationRow({ index, value, destinations, onChange, o
                 key={destination.id}
                 className="destination-row__option"
                 onMouseDown={(event) => event.preventDefault()}
-                onClick={() => selectDestination(destination.name)}
+                onClick={() => selectDestination(destination.name || destination.destinationName)}
               >
-                {destination.name}
+                {destination.name || destination.destinationName}
               </button>
             )) : (
               <span className="destination-row__empty">No destinations found</span>
@@ -69,7 +73,8 @@ export default function DestinationRow({ index, value, destinations, onChange, o
       <input
         type="number"
         min={1}
-        placeholder="Days (optional)"
+        max={30}
+        placeholder="Days"
         value={value.days ?? ''}
         onChange={handleDaysChange}
         className="destination-row__days"

@@ -7,7 +7,7 @@ export function generateTrip(request) {
 export function saveTrip(itinerary) {
   const payload = {
     totalDays: itinerary.totalDays,
-    budget: itinerary.budget,
+    budget: itinerary.budget ?? null,
     travelers: itinerary.travelers,
     interests: itinerary.interests,
     travelStyle: itinerary.travelStyle,

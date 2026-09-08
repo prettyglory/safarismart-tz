@@ -32,7 +32,7 @@ public class Trip {
     @Column(name = "total_days", nullable = false)
     private Integer totalDays;
 
-    @Column(nullable = false, precision = 14, scale = 2)
+    @Column(precision = 14, scale = 2)
     private BigDecimal budget;
 
     @Column(nullable = false)
