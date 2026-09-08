@@ -66,7 +66,12 @@ public class DestinationService {
                 a.getEntranceFeeMin(),
                 a.getEntranceFeeMax(),
                 a.getAvgDurationHours(),
-                a.isCommunityBased()
+                a.isCommunityBased(),
+                a.isActive(),
+                new AttractionSummaryDto.DestinationReference(
+                        a.getDestination().getId(),
+                        a.getDestination().getName()
+                )
         );
     }
 }

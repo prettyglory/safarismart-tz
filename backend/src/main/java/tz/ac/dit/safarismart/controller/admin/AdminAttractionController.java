@@ -1,7 +1,7 @@
 package tz.ac.dit.safarismart.controller.admin;
 
 import tz.ac.dit.safarismart.dto.admin.AttractionRequest;
-import tz.ac.dit.safarismart.entity.Attraction;
+import tz.ac.dit.safarismart.dto.AttractionSummaryDto;
 import tz.ac.dit.safarismart.service.admin.AdminAttractionService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,17 +19,17 @@ public class AdminAttractionController {
     }
 
     @GetMapping
-    public java.util.List<Attraction> getAll() {
+    public java.util.List<AttractionSummaryDto> getAll() {
         return service.findAll();
     }
 
     @PostMapping
-    public ResponseEntity<Attraction> create(@Valid @RequestBody AttractionRequest request) {
+    public ResponseEntity<AttractionSummaryDto> create(@Valid @RequestBody AttractionRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(request));
     }
 
     @PutMapping("/{id}")
-    public Attraction update(@PathVariable Long id, @Valid @RequestBody AttractionRequest request) {
+    public AttractionSummaryDto update(@PathVariable Long id, @Valid @RequestBody AttractionRequest request) {
         return service.update(id, request);
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
 
 public record SaveTripRequest(
         @Min(1) @Max(30) int totalDays,
-        @NotNull @DecimalMin("0.01") BigDecimal budget,
+        @DecimalMin(value = "0.01", message = "budget must be at least 0.01 when provided") BigDecimal budget,
         @Min(1) int travelers,
         List<String> interests,
         @NotNull TravelStyle travelStyle,

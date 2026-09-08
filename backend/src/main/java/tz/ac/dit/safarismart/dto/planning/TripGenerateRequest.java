@@ -18,7 +18,9 @@ public record TripGenerateRequest(
         // Optional if every destination already specifies its own day count.
         @Min(1) @Max(30) Integer totalDays,
 
-        @NotNull @DecimalMin("1.0") BigDecimal budget,
+        Long startingDestinationId,
+
+        @DecimalMin(value = "1.0", message = "budget must be at least 1 when provided") BigDecimal budget,
 
         @NotNull @Min(1) Integer travelers,
 

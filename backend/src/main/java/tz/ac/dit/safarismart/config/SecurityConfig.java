@@ -82,6 +82,7 @@ public class SecurityConfig {
                         // Public: guest itinerary generation (Phase 8) -- generation does not require login,
                         // only *saving* a trip does (per the earlier design decision)
                         .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/trips/generate").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/v1/trips/feasibility").permitAll()
                         // Admin-only endpoints (built out in Phase 6)
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         // Everything else requires authentication

@@ -4,10 +4,14 @@ export function generateTrip(request) {
   return axiosClient.post('/trips/generate', request).then((res) => res.data);
 }
 
+export function checkTripFeasibility(request) {
+  return axiosClient.post('/trips/feasibility', request).then((res) => res.data);
+}
+
 export function saveTrip(itinerary) {
   const payload = {
     totalDays: itinerary.totalDays,
-    budget: itinerary.budget,
+    budget: itinerary.budget ?? null,
     travelers: itinerary.travelers,
     interests: itinerary.interests,
     travelStyle: itinerary.travelStyle,

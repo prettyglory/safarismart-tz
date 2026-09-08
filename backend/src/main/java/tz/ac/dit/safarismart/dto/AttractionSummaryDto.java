@@ -11,6 +11,10 @@ public record AttractionSummaryDto(
         BigDecimal entranceFeeMin,
         BigDecimal entranceFeeMax,
         BigDecimal avgDurationHours,
-        boolean communityBased
+        boolean communityBased,
+        boolean active,
+        DestinationReference destination
 ) {
+    public record DestinationReference(Long id, String name) {
+    }
 }

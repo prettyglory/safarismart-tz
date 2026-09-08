@@ -52,12 +52,16 @@ public class RecommendationEngine {
         draft.setLanguage(request.language() != null ? request.language() : AppLanguage.ENGLISH);
         draft.setTotalDays(Arrays.stream(daysPerLeg).sum());
 
-        Destination previous = null;
+        Destination previous = request.startingDestinationId() == null
+                ? null
+                : destinationRepository.findById(request.startingDestinationId())
+                        .orElseThrow(() -> new ResourceNotFoundException(
+                                "Starting destination not found: id=" + request.startingDestinationId()));
         for (int i = 0; i < destinations.size(); i++) {
             Destination destination = destinations.get(i);
             LegDraft leg = buildLeg(destination, i + 1, daysPerLeg[i], draft.getInterests(), draft.getTravelStyle());
 
-            if (previous != null) {
+            if (previous != null && !previous.getId().equals(destination.getId())) {
                 attachInterDestinationTransfer(leg, previous, destination);
             }
 
@@ -69,6 +73,27 @@ public class RecommendationEngine {
         return draft;
     }
 
+    public List<Destination> findCheaperAlternatives(TripGenerateRequest request, BigDecimal originalCostMin) {
+        Set<Long> selectedIds = new HashSet<>(resolveDestinations(request.destinations()).stream()
+                .map(Destination::getId)
+                .toList());
+        int days = alternativeDays(request);
+
+        return destinationRepository.findAll().stream()
+                .filter(destination -> !selectedIds.contains(destination.getId()))
+                .filter(destination -> !request.startingDestinationId().equals(destination.getId()))
+                .map(destination -> new AlternativeDestination(
+                        destination,
+                        countInterestMatches(destination.getId(), request.interests()),
+                        estimateDestinationMin(destination, request, days)))
+                .filter(candidate -> candidate.estimatedCostMin().compareTo(originalCostMin) < 0)
+                .sorted(Comparator.comparingInt(AlternativeDestination::interestMatches).reversed()
+                        .thenComparing(AlternativeDestination::estimatedCostMin))
+                .limit(3)
+                .map(AlternativeDestination::destination)
+                .toList();
+    }
+
     private List<Destination> resolveDestinations(List<DestinationInput> inputs) {
         List<Destination> resolved = new ArrayList<>();
         for (DestinationInput input : inputs) {
@@ -77,6 +102,56 @@ public class RecommendationEngine {
             resolved.add(destination);
         }
         return resolved;
+    }
+
+    private int alternativeDays(TripGenerateRequest request) {
+        int specifiedDays = request.destinations().stream()
+                .map(DestinationInput::days)
+                .filter(Objects::nonNull)
+                .mapToInt(Integer::intValue)
+                .sum();
+        if (request.totalDays() != null) {
+            return Math.max(1, request.totalDays() / request.destinations().size());
+        }
+        return Math.max(1, specifiedDays / request.destinations().size());
+    }
+
+    private int countInterestMatches(Long destinationId, List<String> interests) {
+        if (interests == null || interests.isEmpty()) return 0;
+        return (int) attractionRepository.findByDestinationIdAndActiveTrue(destinationId).stream()
+                .flatMap(attraction -> Arrays.stream(attraction.getInterestTags()))
+                .filter(interests::contains)
+                .distinct()
+                .count();
+    }
+
+    private BigDecimal estimateDestinationMin(Destination destination,
+                                              TripGenerateRequest request,
+                                              int days) {
+        BigDecimal total = accommodationRepository
+                .findByDestinationIdAndStyleAndActiveTrue(destination.getId(), request.travelStyle()).stream()
+                .map(Accommodation::getPriceMin)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO)
+                .multiply(BigDecimal.valueOf(days));
+
+        total = total.add(transportOptionRepository.findByDestinationIdAndActiveTrue(destination.getId()).stream()
+                .map(TransportOption::getPriceMin)
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.ZERO));
+
+        List<Attraction> attractions = attractionRepository.findByDestinationIdAndActiveTrue(destination.getId());
+        attractions.sort(Comparator.comparingInt((Attraction attraction) ->
+                        -tagOverlapCount(attraction, request.interests()))
+                .thenComparing(Attraction::getEntranceFeeMin));
+        int attractionLimit = Math.min(attractions.size(), days * MAX_ATTRACTIONS_PER_DAY);
+        BigDecimal attractionCost = BigDecimal.ZERO;
+        for (int i = 0; i < attractionLimit; i++) {
+            attractionCost = attractionCost.add(attractions.get(i).getEntranceFeeMin()
+                    .multiply(BigDecimal.valueOf(request.travelers())));
+        }
+
+        return total.add(attractionCost);
     }
 
     private int[] allocateDays(TripGenerateRequest request, int legCount) {
@@ -298,5 +373,9 @@ public class RecommendationEngine {
         if (!leg.getDays().isEmpty()) {
             leg.getDays().get(0).getItems().add(0, transferItem);
         }
+    }
+
+    private record AlternativeDestination(Destination destination, int interestMatches,
+                                          BigDecimal estimatedCostMin) {
     }
 }

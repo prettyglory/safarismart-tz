@@ -1,0 +1,2 @@
+ALTER TABLE trip
+    ALTER COLUMN budget DROP NOT NULL;

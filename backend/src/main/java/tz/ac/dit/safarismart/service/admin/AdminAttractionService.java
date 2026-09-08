@@ -1,6 +1,7 @@
 package tz.ac.dit.safarismart.service.admin;
 
 import tz.ac.dit.safarismart.dto.admin.AttractionRequest;
+import tz.ac.dit.safarismart.dto.AttractionSummaryDto;
 import tz.ac.dit.safarismart.entity.Attraction;
 import tz.ac.dit.safarismart.entity.Destination;
 import tz.ac.dit.safarismart.exception.ResourceNotFoundException;
@@ -25,21 +26,21 @@ public class AdminAttractionService {
     }
 
     @Transactional(readOnly = true)
-    public List<Attraction> findAll() {
-        return attractionRepository.findAll();
+    public List<AttractionSummaryDto> findAll() {
+        return attractionRepository.findAll().stream().map(this::toSummary).toList();
     }
 
-    public Attraction create(AttractionRequest request) {
+    public AttractionSummaryDto create(AttractionRequest request) {
         validateFeeRange(request);
         Destination destination = destinationRepository.findById(request.destinationId())
                 .orElseThrow(() -> new ResourceNotFoundException("Destination not found: id=" + request.destinationId()));
 
         Attraction attraction = new Attraction();
         applyRequest(attraction, request, destination);
-        return attractionRepository.save(attraction);
+        return toSummary(attractionRepository.save(attraction));
     }
 
-    public Attraction update(Long id, AttractionRequest request) {
+    public AttractionSummaryDto update(Long id, AttractionRequest request) {
         validateFeeRange(request);
         Attraction attraction = attractionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Attraction not found: id=" + id));
@@ -47,7 +48,7 @@ public class AdminAttractionService {
                 .orElseThrow(() -> new ResourceNotFoundException("Destination not found: id=" + request.destinationId()));
 
         applyRequest(attraction, request, destination);
-        return attractionRepository.save(attraction);
+        return toSummary(attractionRepository.save(attraction));
     }
 
     public void setActive(Long id, boolean active) {
@@ -73,5 +74,24 @@ public class AdminAttractionService {
         attraction.setEntranceFeeMax(request.entranceFeeMax());
         attraction.setAvgDurationHours(request.avgDurationHours());
         attraction.setCommunityBased(request.communityBased());
+    }
+
+    private AttractionSummaryDto toSummary(Attraction attraction) {
+        return new AttractionSummaryDto(
+                attraction.getId(),
+                attraction.getName(),
+                attraction.getCategory(),
+                attraction.getInterestTags(),
+                attraction.getDescription(),
+                attraction.getEntranceFeeMin(),
+                attraction.getEntranceFeeMax(),
+                attraction.getAvgDurationHours(),
+                attraction.isCommunityBased(),
+                attraction.isActive(),
+                new AttractionSummaryDto.DestinationReference(
+                        attraction.getDestination().getId(),
+                        attraction.getDestination().getName()
+                )
+        );
     }
 }

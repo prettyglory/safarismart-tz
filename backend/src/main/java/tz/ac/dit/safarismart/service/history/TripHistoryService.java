@@ -175,8 +175,8 @@ public class TripHistoryService {
                 trip.getTotalDays(), trip.getBudget(), trip.getTravelers(),
                 List.of(trip.getInterests()),
                 totals[0], totals[1],
-                totals[1].compareTo(trip.getBudget()) > 0, // overBudget, recomputed from current saved items
-                null, // budgetNote -- not meaningful to recompute after the fact
+                trip.getBudget() != null && totals[1].compareTo(trip.getBudget()) > 0,
+                trip.getBudget() == null ? "No budget limit was provided." : null,
                 trip.getTravelStyle(), trip.getLanguage(),
                 legs, true // aiNarrated -- not tracked historically; the narrative text itself is what matters now
         );
