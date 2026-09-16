@@ -21,12 +21,11 @@ export function AuthProvider({ children }) {
 
   function persistSession(authResponse) {
     localStorage.setItem('safarismart_token', authResponse.token);
-    const sessionUser = {
-      userId: authResponse.userId,
-      fullName: authResponse.fullName,
-      email: authResponse.email,
-      role: authResponse.role,
-    };
+   const sessionUser = {
+  userId: authResponse.userId,
+  fullName: authResponse.fullName,
+  email: authResponse.email,
+};
     localStorage.setItem('safarismart_user', JSON.stringify(sessionUser));
     setUser(sessionUser);
   }
@@ -52,7 +51,6 @@ export function AuthProvider({ children }) {
   const value = {
     user,
     isAuthenticated: Boolean(user),
-    isAdmin: user?.role === 'ADMIN',
     login,
     register,
     logout,
